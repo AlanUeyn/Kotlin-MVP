@@ -1,10 +1,14 @@
 package com.task.ui.component.details
 
+import android.os.Bundle
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.squareup.picasso.Picasso
-import com.task.App
 import com.task.R
 import com.task.data.remote.dto.NewsItem
+import com.task.ui.ViewModelFactory
 import com.task.ui.base.BaseActivity
+import com.task.utils.Constants
 import kotlinx.android.synthetic.main.details_layout.*
 import javax.inject.Inject
 
@@ -15,14 +19,27 @@ import javax.inject.Inject
 class DetailsActivity : BaseActivity(), DetailsContract.View {
 
     @Inject
-    lateinit var detailsPresenter: DetailsBaseViewModel
+    lateinit var viewModel: DetailsViewModel
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
 
     override val layoutId: Int
         get() = R.layout.details_layout
 
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel.newsItem?.value = intent.getParcelableExtra(Constants.NEWS_ITEM_KEY)
+        viewModel.newsItem?.observe(this, Observer { newsModel ->
+            initializeView(newsItem = newsModel)
+        })
+
+    }
+
     override fun initializeViewModel() {
-        detailsPresenter.setView(this)
-        super.baseViewModel = detailsPresenter
+        viewModel = ViewModelProviders.of(this, viewModelFactory)
+                .get(viewModel::class.java)
     }
 
     override fun initializeView(newsItem: NewsItem) {

@@ -12,5 +12,5 @@ interface DetailsContract : BaseView {
         fun initializeView(newsItem: NewsItem)
     }
 
-    interface Presenter
+    interface IViewModel
 }

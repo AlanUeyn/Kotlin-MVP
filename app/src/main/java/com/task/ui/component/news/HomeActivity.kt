@@ -1,16 +1,18 @@
 package com.task.ui.component.news
 
+import android.os.Bundle
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import androidx.annotation.VisibleForTesting
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.test.espresso.IdlingResource
 import butterknife.OnClick
 import com.task.R
 import com.task.data.remote.dto.NewsItem
+import com.task.ui.ViewModelFactory
 import com.task.ui.base.BaseActivity
 import com.task.ui.base.listeners.RecyclerItemListener
 import com.task.ui.component.details.DetailsActivity
@@ -29,7 +31,7 @@ class HomeActivity : BaseActivity(), HomeContract.View, RecyclerItemListener {
     @Inject
     lateinit var homeViewModel: HomeViewModel
     @Inject
-    lateinit var viewModelFactory: ViewModelProvider.Factory
+    lateinit var viewModelFactory: ViewModelFactory
 
     override val layoutId: Int
         get() = R.layout.home_activity
@@ -41,11 +43,15 @@ class HomeActivity : BaseActivity(), HomeContract.View, RecyclerItemListener {
     override fun initializeViewModel() {
         homeViewModel = ViewModelProviders.of(this, viewModelFactory)
                 .get(HomeViewModel::class.java)
+    }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        initializeNewsList(homeViewModel)
     }
 
     override fun initializeNewsList(news: List<NewsItem>) {
-        val newsAdapter = NewsAdapter(homeViewModel.getRecyclerItemListener(), news)
+        val newsAdapter = NewsAdapter(this, news)
         val layoutManager = LinearLayoutManager(this)
         rv_news_list.layoutManager = layoutManager
         rv_news_list.setHasFixedSize(true)
@@ -88,14 +94,44 @@ class HomeActivity : BaseActivity(), HomeContract.View, RecyclerItemListener {
     fun onClick(view: View) {
         when (view.id) {
             R.id.ic_toolbar_refresh -> homeViewModel.getNews()
-            R.id.btn_search -> homeViewModel.onSearchClick(et_search.text.toString())
+            R.id.btn_search -> {
+                if(!(et_search.text?.toString().isNullOrEmpty())) {
+                    setLoaderVisibility(true)
+                    homeViewModel.onSearchClick(et_search.text?.toString()!!)
+                }
+            }
         }
     }
-    override fun onItemSelected(position: Int) {
-        //navigateToDetailsScreen(newsItems!![position])
+
+    override fun onItemSelected(position: Int) =
+            this.navigateToDetailsScreen(news = homeViewModel.newsModel.value?.newsItems?.get(position)!!)
+
+    private fun initializeNewsList(viewModel: HomeViewModel) {
+        showDataIsLoading(true)
+        viewModel.newsModel.observe(this, Observer { newsModel ->
+            // we don't need any null checks here for the adapter since LiveData guarantees that
+            // it won't call us if fragment is stopped or not started.
+            if (!(newsModel?.newsItems.isNullOrEmpty())) {
+                val newsAdapter = NewsAdapter(this, newsModel?.newsItems!!)
+                val layoutManager = LinearLayoutManager(this)
+                rv_news_list.layoutManager = layoutManager
+                rv_news_list.setHasFixedSize(true)
+                rv_news_list.adapter = newsAdapter
+            } else {
+                //TODO NO data
+            }
+            showDataIsLoading(false)
+        })
     }
-    override fun onDestroy() {
-        super.onDestroy()
-        homeViewModel.unSubscribe()
+
+    private fun showDataIsLoading(isLoading: Boolean) {
+        setLoaderVisibility(isLoading)
+        setNoDataVisibility(!isLoading)
+        setListVisibility(!isLoading)
+        if (isLoading) {
+            incrementCountingIdlingResource()
+        } else {
+            decrementCountingIdlingResource()
+        }
     }
 }

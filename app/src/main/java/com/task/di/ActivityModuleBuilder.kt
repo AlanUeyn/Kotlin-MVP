@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.android.example.github.di
-
+package com.task.di
+import com.task.ui.component.details.DetailsActivity
+import com.task.ui.component.details.DetailsActivityModules
 import com.task.ui.component.news.HomeActivity
 import com.task.ui.component.news.HomeActivityModules
 import com.task.ui.component.splash.SplashActivity
@@ -32,6 +32,6 @@ abstract class ActivityModuleBuilder {
     @ContributesAndroidInjector(modules = [HomeActivityModules::class])
     abstract fun contributeHomeActivity(): HomeActivity
 
-//    @ContributesAndroidInjector(modules = [FragmentBuildersModule::class])
-//    abstract fun contributeDetailsActivity(): DetailsActivity
+    @ContributesAndroidInjector(modules = [DetailsActivityModules::class])
+    abstract fun contributeDetailsActivity(): DetailsActivity
 }

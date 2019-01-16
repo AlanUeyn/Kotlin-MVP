@@ -2,7 +2,6 @@ package com.task.ui.component.news
 
 import com.task.data.remote.dto.NewsItem
 import com.task.ui.base.listeners.BaseView
-import com.task.ui.base.listeners.RecyclerItemListener
 
 /**
  * Created by AhmedEltaher on 5/12/2016
@@ -33,12 +32,9 @@ interface HomeContract {
 
     interface IViewModel {
 
-        fun getRecyclerItemListener():RecyclerItemListener
-
         fun getNews()
 
         fun onSearchClick(newsTitle: String)
 
-        fun unSubscribe()
     }
 }

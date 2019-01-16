@@ -1,14 +1,11 @@
 package com.task.ui.component.news
 
-import android.os.Bundle
-import com.task.data.DataRepository
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.task.data.remote.dto.NewsItem
 import com.task.data.remote.dto.NewsModel
 import com.task.ui.base.BaseViewModel
-import com.task.ui.base.listeners.BaseCallback
-import com.task.ui.base.listeners.RecyclerItemListener
 import com.task.usecase.NewsUseCase
-import com.task.utils.ObjectUtil
 import javax.inject.Inject
 
 /**
@@ -16,69 +13,21 @@ import javax.inject.Inject
  */
 
 class HomeViewModel @Inject
-constructor(private val dataRepository: DataRepository) : BaseViewModel(), HomeContract.IViewModel {
-    var newsModel: NewsModel? = null
+constructor(val newsUseCase: NewsUseCase) : BaseViewModel(), HomeContract.IViewModel {
+    var newsModel: LiveData<NewsModel> = MutableLiveData()
+    var newsSearchFound: MutableLiveData<NewsItem> = MutableLiveData()
+    var noSearchFound: MutableLiveData<Boolean> = MutableLiveData()
 
-    override fun getRecyclerItemListener(): RecyclerItemListener {
-        return this
-    }
-
-    private val callback = object : BaseCallback {
-        override fun onSuccess(newsModel: NewsModel) {
-            getView()?.decrementCountingIdlingResource()
-            this@HomeViewModel.newsModel = newsModel
-            var newsItems: List<NewsItem>? = null
-            if (!ObjectUtil.isNull(newsModel)) {
-                newsItems = newsModel.newsItems
-            }
-            if (!ObjectUtil.isNull(newsItems) && !newsItems!!.isEmpty()) {
-                getView()?.initializeNewsList(newsModel.newsItems!!)
-                showList(true)
-            } else {
-                showList(false)
-            }
-            getView()?.setLoaderVisibility(false)
-        }
-
-        override fun onFail() {
-            getView()?.decrementCountingIdlingResource()
-            showList(false)
-            getView()?.setLoaderVisibility(false)
-        }
-    }
-
-    override fun initialize(extras: Bundle?) {
-        super.initialize(extras)
-        getNews()
-    }
-
-    override fun getNews() {
-        getView()?.setLoaderVisibility(true)
-        getView()?.setNoDataVisibility(false)
-        getView()?.setListVisibility(false)
-        getView()?.incrementCountingIdlingResource()
-        newsUseCase.getNews(callback)
-    }
-
-    override fun unSubscribe() {
+     override fun getNews() {
+        newsModel = newsUseCase.getNewsAsync()!!
     }
 
     override fun onSearchClick(newsTitle: String) {
-        val news = newsModel!!.newsItems
+        val news = newsModel?.value?.newsItems
         if (!newsTitle.isEmpty() && !news.isNullOrEmpty()) {
-            val newsItem = newsUseCase.searchByTitle(news, newsTitle)
-            if (newsItem != null) {
-                getView()?.navigateToDetailsScreen(newsItem)
-            } else {
-                getView()?.showSearchError()
-            }
+            newsSearchFound.value = newsUseCase.searchByTitle(news, newsTitle)
         } else {
-            getView()?.showSearchError()
+            noSearchFound.value=true
         }
-    }
-
-    private fun showList(isVisible: Boolean) {
-        getView()?.setNoDataVisibility(!isVisible)
-        getView()?.setListVisibility(isVisible)
     }
 }

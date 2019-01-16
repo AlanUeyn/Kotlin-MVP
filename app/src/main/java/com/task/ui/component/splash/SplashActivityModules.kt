@@ -12,5 +12,7 @@ abstract class SplashActivityModules {
     @Binds
     @IntoMap
     @ViewModelKey(SplashViewModel::class)
-    abstract fun bindUserViewModel(userViewModel: SplashViewModel): ViewModel
+    abstract fun bindSplashViewModel(viewModel: SplashViewModel): ViewModel
+
+
 }

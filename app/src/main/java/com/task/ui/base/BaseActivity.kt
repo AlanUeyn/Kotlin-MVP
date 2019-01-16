@@ -48,8 +48,8 @@ abstract class BaseActivity : AppCompatActivity(), BaseView, ActionBarView {
         super.onCreate(savedInstanceState)
         setContentView(layoutId)
         unbinder = ButterKnife.bind(this)
-        initializeViewModel()
         initializeToolbar()
+        initializeViewModel()
     }
 
     private fun initializeToolbar() {
