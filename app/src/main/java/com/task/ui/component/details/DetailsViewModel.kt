@@ -14,9 +14,4 @@ constructor() : BaseViewModel(), DetailsContract.IViewModel {
 
      var newsItem: MutableLiveData<NewsItem>? = null
 
-//    override fun initialize(extras: Bundle?) {
-//        super.initialize(extras)
-//        newsItem = extras?.getParcelable(Constants.NEWS_ITEM_KEY)
-//        getView()?.initializeView(newsItem!!)
-//    }
 }

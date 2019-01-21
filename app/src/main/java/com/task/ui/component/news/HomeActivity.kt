@@ -1,7 +1,6 @@
 package com.task.ui.component.news
 
 import android.os.Bundle
-import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import androidx.annotation.VisibleForTesting
@@ -9,7 +8,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.test.espresso.IdlingResource
-import butterknife.OnClick
 import com.task.R
 import com.task.data.remote.dto.NewsItem
 import com.task.ui.ViewModelFactory
@@ -19,8 +17,10 @@ import com.task.ui.component.details.DetailsActivity
 import com.task.utils.Constants
 import com.task.utils.EspressoIdlingResource
 import kotlinx.android.synthetic.main.home_activity.*
+import kotlinx.android.synthetic.main.toolbar.*
 import org.jetbrains.anko.design.snackbar
 import org.jetbrains.anko.intentFor
+import org.jetbrains.anko.toast
 import javax.inject.Inject
 
 /**
@@ -47,6 +47,13 @@ class HomeActivity : BaseActivity(), HomeContract.View, RecyclerItemListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ic_toolbar_refresh.setOnClickListener { homeViewModel.getNews() }
+        btn_search.setOnClickListener {
+            if(!(et_search.text?.toString().isNullOrEmpty())) {
+            setLoaderVisibility(true)
+            homeViewModel.onSearchClick(et_search.text?.toString()!!)
+         }
+        }
         initializeNewsList(homeViewModel)
     }
 
@@ -90,19 +97,6 @@ class HomeActivity : BaseActivity(), HomeContract.View, RecyclerItemListener {
         EspressoIdlingResource.decrement()
     }
 
-    @OnClick(R.id.ic_toolbar_setting, R.id.ic_toolbar_refresh, R.id.btn_search)
-    fun onClick(view: View) {
-        when (view.id) {
-            R.id.ic_toolbar_refresh -> homeViewModel.getNews()
-            R.id.btn_search -> {
-                if(!(et_search.text?.toString().isNullOrEmpty())) {
-                    setLoaderVisibility(true)
-                    homeViewModel.onSearchClick(et_search.text?.toString()!!)
-                }
-            }
-        }
-    }
-
     override fun onItemSelected(position: Int) =
             this.navigateToDetailsScreen(news = homeViewModel.newsModel.value?.newsItems?.get(position)!!)
 
@@ -119,6 +113,7 @@ class HomeActivity : BaseActivity(), HomeContract.View, RecyclerItemListener {
                 rv_news_list.adapter = newsAdapter
             } else {
                 //TODO NO data
+                toast("some thing went wrong!")
             }
             showDataIsLoading(false)
         })

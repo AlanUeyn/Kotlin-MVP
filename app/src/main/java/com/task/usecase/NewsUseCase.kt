@@ -20,27 +20,29 @@ import kotlin.coroutines.CoroutineContext
 
 class NewsUseCase @Inject
 constructor(private val dataRepository: DataRepository, override val coroutineContext: CoroutineContext) : UseCase, CoroutineScope {
-    private var newsModle: LiveData<NewsModel>? = null
+    private var newsModle: MutableLiveData<NewsModel>? = null
 
 
     fun getNewsAsync(): LiveData<NewsModel>? {
+        val serviceResponse = async(Dispatchers.IO) { dataRepository.requestNews() }
+
         return runBlocking<LiveData<NewsModel>?> {
-            val serviceResponse = async(Dispatchers.IO) { dataRepository.requestNews() }.await()
-            if (serviceResponse?.value?.code == ServiceError.SUCCESS_CODE) {
-                Transformations.switchMap(serviceResponse) { serviceResponse -> transformServiceResponseToDataObject(serviceResponse) }
+            val response = serviceResponse.await()
+            if (response?.code == ServiceError.SUCCESS_CODE) {
+                newsModle?.postValue(response.data as NewsModel)
+                return@runBlocking newsModle
             } else {
-                null
+                null // TODO return Error Code
             }
         }
     }
-
 
     override fun getNews(callback: BaseCallback) {
         launch {
             try {
                 val serviceResponse = async(Dispatchers.IO) { dataRepository.requestNews() }.await()
                 if (serviceResponse?.value?.code == ServiceError.SUCCESS_CODE) {
-                    newsModle = Transformations.switchMap(serviceResponse) { serviceResponse -> transformServiceResponseToDataObject(serviceResponse) }
+                    newsModle = Transformations.switchMap(serviceResponse) { serviceResponse -> transformServiceResponseToDataObject(serviceResponse!!) }
                 } else {
                     callback.onFail()
                 }

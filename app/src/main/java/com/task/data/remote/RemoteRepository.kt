@@ -17,7 +17,7 @@ import javax.inject.Inject
 class RemoteRepository @Inject
 constructor(private val serviceGenerator: ServiceGenerator) : RemoteSource {
 
-    override suspend fun requestNews(): ServiceResponse? {
+    override  fun requestNews(): ServiceResponse? {
         return if (!isConnected(App.context)) {
             ServiceResponse(ServiceError(code = -1, description = ServiceError.NETWORK_ERROR))
         } else {

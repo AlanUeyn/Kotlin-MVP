@@ -1,6 +1,5 @@
 package com.task.data
 
-import androidx.lifecycle.LiveData
 import com.task.data.remote.ServiceResponse
 
 /**
@@ -8,5 +7,5 @@ import com.task.data.remote.ServiceResponse
  */
 
 internal interface DataSource {
-    suspend fun requestNews(): LiveData<ServiceResponse>?
+    fun requestNews(): ServiceResponse?
 }

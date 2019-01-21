@@ -31,7 +31,8 @@ class DetailsActivity : BaseActivity(), DetailsContract.View {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel.newsItem?.value = intent.getParcelableExtra(Constants.NEWS_ITEM_KEY)
-        viewModel.newsItem?.observe(this, Observer { newsModel ->
+        viewModel.newsItem?.observe(this, Observer
+        { newsModel ->
             initializeView(newsItem = newsModel)
         })
 

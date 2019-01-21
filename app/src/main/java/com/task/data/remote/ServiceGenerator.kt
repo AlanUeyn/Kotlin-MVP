@@ -25,7 +25,7 @@ constructor(private val gson: Gson) {
     private val CONTENT_TYPE = "Content-Type"
     private val API_KEY = "apikey"
     private val CONTENT_TYPE_VALUE = "application/json"
-    private val API_KEY_VALUE = "0bac85d8945140b3bc8dde8aff16e329"
+    private val API_KEY_VALUE = "k5ptm99cGH9NgdIzGIyGhmslFv2cX3Jt"
 
     private val okHttpBuilder: OkHttpClient.Builder = OkHttpClient.Builder()
     private var retrofit: Retrofit? = null
@@ -35,7 +35,7 @@ constructor(private val gson: Gson) {
 
         val request = original.newBuilder()
                 .header(CONTENT_TYPE, CONTENT_TYPE_VALUE)
-                .header(API_KEY, API_KEY_VALUE)
+//                .header(API_KEY, API_KEY_VALUE)
                 .method(original.method(), original.body())
                 .build()
 

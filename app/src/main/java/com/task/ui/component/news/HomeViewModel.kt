@@ -23,7 +23,7 @@ constructor(val newsUseCase: NewsUseCase) : BaseViewModel(), HomeContract.IViewM
     }
 
     override fun onSearchClick(newsTitle: String) {
-        val news = newsModel?.value?.newsItems
+        val news = newsModel.value?.newsItems
         if (!newsTitle.isEmpty() && !news.isNullOrEmpty()) {
             newsSearchFound.value = newsUseCase.searchByTitle(news, newsTitle)
         } else {
