@@ -12,6 +12,6 @@ import javax.inject.Inject
 class DetailsViewModel @Inject
 constructor() : BaseViewModel(), DetailsContract.IViewModel {
 
-     var newsItem: MutableLiveData<NewsItem>? = null
+     var newsItem: MutableLiveData<NewsItem>? = MutableLiveData()
 
 }

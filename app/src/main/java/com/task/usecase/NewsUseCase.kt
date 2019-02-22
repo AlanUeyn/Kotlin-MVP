@@ -1,15 +1,15 @@
 package com.task.usecase
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
 import com.task.data.DataRepository
 import com.task.data.remote.ServiceError
-import com.task.data.remote.ServiceResponse
 import com.task.data.remote.dto.NewsItem
 import com.task.data.remote.dto.NewsModel
 import com.task.ui.base.listeners.BaseCallback
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
@@ -20,29 +20,15 @@ import kotlin.coroutines.CoroutineContext
 
 class NewsUseCase @Inject
 constructor(private val dataRepository: DataRepository, override val coroutineContext: CoroutineContext) : UseCase, CoroutineScope {
-    private var newsModle: MutableLiveData<NewsModel>? = null
-
-
-    fun getNewsAsync(): LiveData<NewsModel>? {
-        val serviceResponse = async(Dispatchers.IO) { dataRepository.requestNews() }
-
-        return runBlocking<LiveData<NewsModel>?> {
-            val response = serviceResponse.await()
-            if (response?.code == ServiceError.SUCCESS_CODE) {
-                newsModle?.postValue(response.data as NewsModel)
-                return@runBlocking newsModle
-            } else {
-                null // TODO return Error Code
-            }
-        }
-    }
+    private var newsModle: MutableLiveData<NewsModel>? = MutableLiveData()
 
     override fun getNews(callback: BaseCallback) {
         launch {
             try {
                 val serviceResponse = async(Dispatchers.IO) { dataRepository.requestNews() }.await()
-                if (serviceResponse?.value?.code == ServiceError.SUCCESS_CODE) {
-                    newsModle = Transformations.switchMap(serviceResponse) { serviceResponse -> transformServiceResponseToDataObject(serviceResponse!!) }
+                if (serviceResponse?.code == ServiceError.SUCCESS_CODE) {
+                    val data = serviceResponse.data
+                    callback.onSuccess(data as NewsModel)
                 } else {
                     callback.onFail()
                 }
@@ -61,8 +47,8 @@ constructor(private val dataRepository: DataRepository, override val coroutineCo
         return null
     }
 
-    private fun transformServiceResponseToDataObject(serviceResponse: ServiceResponse): MutableLiveData<NewsModel> {
-        var newsModel: NewsModel = serviceResponse.data as NewsModel
+    private fun transformServiceResponseToDataObject(serviceResponse: Any?): MutableLiveData<NewsModel> {
+        var newsModel: NewsModel = serviceResponse as NewsModel
         var newsResponse: MutableLiveData<NewsModel> = MutableLiveData()
         newsResponse.value = newsModel
         return newsResponse

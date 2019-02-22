@@ -1,10 +1,10 @@
 package com.task.ui.component.news
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.task.data.remote.dto.NewsItem
 import com.task.data.remote.dto.NewsModel
 import com.task.ui.base.BaseViewModel
+import com.task.ui.base.listeners.BaseCallback
 import com.task.usecase.NewsUseCase
 import javax.inject.Inject
 
@@ -13,13 +13,25 @@ import javax.inject.Inject
  */
 
 class HomeViewModel @Inject
-constructor(val newsUseCase: NewsUseCase) : BaseViewModel(), HomeContract.IViewModel {
-    var newsModel: LiveData<NewsModel> = MutableLiveData()
+constructor(newsDataUseCase: NewsUseCase) : BaseViewModel(), HomeContract.IViewModel {
+
+    var newsUseCase: NewsUseCase = newsDataUseCase
+    var newsModel: MutableLiveData<NewsModel> = MutableLiveData()
     var newsSearchFound: MutableLiveData<NewsItem> = MutableLiveData()
     var noSearchFound: MutableLiveData<Boolean> = MutableLiveData()
 
-     override fun getNews() {
-        newsModel = newsUseCase.getNewsAsync()!!
+    override fun getNews() {
+        newsUseCase.getNews(callback)
+    }
+
+    val callback = object : BaseCallback {
+        override fun onSuccess(newsModelData: NewsModel) {
+            newsModel.postValue(newsModelData)
+        }
+
+        override fun onFail() {
+            newsModel.postValue(null)
+        }
     }
 
     override fun onSearchClick(newsTitle: String) {
@@ -27,7 +39,7 @@ constructor(val newsUseCase: NewsUseCase) : BaseViewModel(), HomeContract.IViewM
         if (!newsTitle.isEmpty() && !news.isNullOrEmpty()) {
             newsSearchFound.value = newsUseCase.searchByTitle(news, newsTitle)
         } else {
-            noSearchFound.value=true
+            noSearchFound.value = true
         }
     }
 }

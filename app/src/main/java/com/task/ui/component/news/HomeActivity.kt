@@ -47,14 +47,26 @@ class HomeActivity : BaseActivity(), HomeContract.View, RecyclerItemListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        ic_toolbar_refresh.setOnClickListener { homeViewModel.getNews() }
+        ic_toolbar_refresh.setOnClickListener {
+            incrementCountingIdlingResource()
+            showDataIsLoading(true)
+            homeViewModel.getNews()
+        }
         btn_search.setOnClickListener {
-            if(!(et_search.text?.toString().isNullOrEmpty())) {
-            setLoaderVisibility(true)
-            homeViewModel.onSearchClick(et_search.text?.toString()!!)
-         }
+            if (!(et_search.text?.toString().isNullOrEmpty())) {
+                setLoaderVisibility(true)
+                homeViewModel.onSearchClick(et_search.text?.toString()!!)
+            }
         }
         initializeNewsList(homeViewModel)
+        homeViewModel.newsSearchFound.observe(this, Observer {newsItem ->
+            if(newsItem!=null){
+                setLoaderVisibility(false)
+                navigateToDetailsScreen(newsItem)
+            }else{
+                showSearchError()
+            }
+        })
     }
 
     override fun initializeNewsList(news: List<NewsItem>) {
@@ -112,21 +124,25 @@ class HomeActivity : BaseActivity(), HomeContract.View, RecyclerItemListener {
                 rv_news_list.setHasFixedSize(true)
                 rv_news_list.adapter = newsAdapter
             } else {
-                //TODO NO data
+                //TODO NO datax
                 toast("some thing went wrong!")
             }
             showDataIsLoading(false)
         })
+        viewModel.getNews()
     }
 
     private fun showDataIsLoading(isLoading: Boolean) {
-        setLoaderVisibility(isLoading)
-        setNoDataVisibility(!isLoading)
-        setListVisibility(!isLoading)
         if (isLoading) {
+            pb_loading.visibility = VISIBLE
+            tv_no_data.visibility = GONE
+            rl_news_list.visibility = GONE
             incrementCountingIdlingResource()
         } else {
             decrementCountingIdlingResource()
+            pb_loading.visibility = GONE
+            tv_no_data.visibility = GONE
+            rl_news_list.visibility = VISIBLE
         }
     }
 }
